@@ -17,15 +17,16 @@ public class AccountRepositoryImpl implements AccountRepository {
     static {
         System.out.println("Instanciation de Singleton");
         accountRepository = new AccountRepositoryImpl();
-        accountRepository.populateData();
+        //accountRepository.populateData();
     }
 
     private AccountRepositoryImpl(){}
     private Map<Long, BankAccount> bankAccountMap = new HashMap<>();
     private long accountsCount = 0;
     @Override
-    public BankAccount save(BankAccount bankAccount) {
-        Long accountId = ++ accountsCount;
+    public synchronized BankAccount save(BankAccount bankAccount) {
+        Long accountId;
+        accountId = ++ accountsCount;  //Critical zone
         bankAccount.setAccountId(accountId);
         bankAccountMap.put(accountId,bankAccount);
         return bankAccount;
@@ -71,9 +72,20 @@ public class AccountRepositoryImpl implements AccountRepository {
                     .build();
             save(account);
         }
+        System.out.println("**************************");
+        System.out.println(Thread.currentThread().getName());
+        System.out.println("Account Count = "+accountsCount);
+        System.out.println("Size : "+bankAccountMap.values().size());
+        System.out.println("**************************");
     }
 
-    public static  AccountRepositoryImpl getInstance(){
+    public synchronized static  AccountRepositoryImpl getInstance(){
+        /*
+        if (accountRepository == null){
+            System.out.println("Singleton instantiation");
+            accountRepository = new AccountRepositoryImpl();
+            accountRepository.populateData();
+        }*/
         return accountRepository;
     }
 }
